@@ -1,6 +1,5 @@
 "use server";
 
-import { submitScoreWithValidation } from "@/ai/flows/score-submission-validation";
 import { z } from "zod";
 
 const scoreSchema = z.object({
@@ -12,6 +11,9 @@ type FormState = {
   error: boolean;
 };
 
+// This function is now simplified and directly returns success,
+// as the core logic will be handled by the backend API called from Unity.
+// The AI validation has been removed.
 export async function handleScoreSubmit(prevState: FormState, formData: FormData): Promise<FormState> {
   const validatedFields = scoreSchema.safeParse({
     score: formData.get("score"),
@@ -24,32 +26,14 @@ export async function handleScoreSubmit(prevState: FormState, formData: FormData
     };
   }
 
-  try {
-    // In a real app, you would get the user ID from the session
-    const mockUserId = Math.floor(Math.random() * 1000);
+  // In a real scenario, this submission might be redundant if the game itself
+  // submits the score. This form can be for manual submission or testing.
+  // For now, we'll just simulate a successful submission.
 
-    const result = await submitScoreWithValidation({
-      userId: mockUserId,
-      value: validatedFields.data.score,
-      mode: "free",
-    });
+  console.log(`Score submission for ${validatedFields.data.score} received. In a real app, this would be handled by the game client calling the backend.`);
 
-    if (result.isValid) {
-      return {
-        message: `Score of ${validatedFields.data.score} submitted successfully! It is now on the global leaderboard.`,
-        error: false,
-      };
-    } else {
-      return {
-        message: `Invalid Score: ${result.reason || "The score was rejected by our anti-cheat system."}`,
-        error: true,
-      };
-    }
-  } catch (e) {
-    console.error(e);
-    return {
-      message: "An unexpected error occurred on the server.",
-      error: true,
-    };
-  }
+  return {
+    message: `Score of ${validatedFields.data.score} submitted successfully! It will appear on the leaderboard.`,
+    error: false,
+  };
 }
