@@ -1,39 +1,12 @@
 "use server";
 
-import { z } from "zod";
+// This file is no longer needed as all logic is handled by the backend API.
+// It is kept to avoid breaking existing imports, but its functions are deprecated.
 
-const scoreSchema = z.object({
-  score: z.coerce.number().int().min(0, "Score must be a positive number."),
-});
-
-type FormState = {
-  message: string;
-  error: boolean;
-};
-
-// This function is now simplified and directly returns success,
-// as the core logic will be handled by the backend API called from Unity.
-// The AI validation has been removed.
-export async function handleScoreSubmit(prevState: FormState, formData: FormData): Promise<FormState> {
-  const validatedFields = scoreSchema.safeParse({
-    score: formData.get("score"),
-  });
-
-  if (!validatedFields.success) {
-    return {
-      message: validatedFields.error.flatten().fieldErrors.score?.[0] || "Invalid input.",
-      error: true,
-    };
-  }
-
-  // In a real scenario, this submission might be redundant if the game itself
-  // submits the score. This form can be for manual submission or testing.
-  // For now, we'll just simulate a successful submission.
-
-  console.log(`Score submission for ${validatedFields.data.score} received. In a real app, this would be handled by the game client calling the backend.`);
-
+export async function handleScoreSubmit() {
+  console.warn("handleScoreSubmit is deprecated. Use the /api/scores/submit endpoint.");
   return {
-    message: `Score of ${validatedFields.data.score} submitted successfully! It will appear on the leaderboard.`,
-    error: false,
+    message: `This form is deprecated. Score submission is handled by the game client.`,
+    error: true,
   };
 }

@@ -1,20 +1,14 @@
 import { app } from '@/backend/server';
 import { NextRequest } from 'next/server';
 
-const handle = app;
-
-export async function GET(request: NextRequest, { params }: { params: { route: string[] } }) {
-  return handle(request, { params });
+function handler(req: NextRequest, { params }: { params: { route: string[] } }) {
+    // This is a workaround for the fact that Next.js doesn't pass the body for GET requests to the handler
+    // and Express needs to know the original method.
+    // @ts-ignore
+    req.originalMethod = req.method;
+    
+    return app(req, { params });
 }
 
-export async function POST(request: NextRequest, { params }: { params: { route: string[] } }) {
-  return handle(request, { params });
-}
 
-export async function PUT(request: NextRequest, { params }: { params: { route: string[] } }) {
-    return handle(request, { params });
-}
-
-export async function DELETE(request: NextRequest, { params }: { params: { route: string[] } }) {
-    return handle(request, { params });
-}
+export { handler as GET, handler as POST, handler as PUT, handler as DELETE, handler as PATCH };

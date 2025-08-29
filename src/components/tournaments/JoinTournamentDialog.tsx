@@ -12,18 +12,44 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { joinTournament } from "@/lib/api";
 
 interface JoinTournamentDialogProps {
+    tournamentId: number;
     fee: number;
     disabled: boolean;
     disabledText: string;
 }
 
-export function JoinTournamentDialog({ fee, disabled, disabledText }: JoinTournamentDialogProps) {
-  const tournamentWallet = "TXYZ...YourTournamentWalletAddress...1234";
+export function JoinTournamentDialog({ tournamentId, fee, disabled, disabledText }: JoinTournamentDialogProps) {
+  const tournamentWallet = "TXYZ...YourTournamentWalletAddress...1234"; // This should come from the backend in a real app
+  const [txHash, setTxHash] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async () => {
+    if (!txHash) {
+        toast({ title: "Error", description: "Please enter a transaction hash.", variant: "destructive"});
+        return;
+    }
+    setIsLoading(true);
+    try {
+        await joinTournament(tournamentId, txHash);
+        toast({ title: "Registration Submitted!", description: "Your payment is pending verification by an admin." });
+        setOpen(false);
+        setTxHash("");
+    } catch (error: any) {
+        toast({ title: "Registration Failed", description: error.message || "An unknown error occurred.", variant: "destructive" });
+    } finally {
+        setIsLoading(false);
+    }
+  }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="w-full font-bold text-lg bg-accent hover:bg-accent/90 hover:shadow-glow-accent transition-all duration-300" disabled={disabled}>
           {disabled ? disabledText : `Join for ${fee} USDT`}
@@ -51,11 +77,13 @@ export function JoinTournamentDialog({ fee, disabled, disabledText }: JoinTourna
             <Label htmlFor="tx-hash" className="text-right font-headline">
               TxHash
             </Label>
-            <Input id="tx-hash" placeholder="0x..." className="col-span-3" />
+            <Input id="tx-hash" placeholder="0x..." className="col-span-3" value={txHash} onChange={(e) => setTxHash(e.target.value)} />
           </div>
         </div>
         <DialogFooter>
-          <Button type="submit" className="w-full bg-accent hover:bg-accent/90">Submit for Verification</Button>
+          <Button type="submit" className="w-full bg-accent hover:bg-accent/90" onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? "Submitting..." : "Submit for Verification"}
+            </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
